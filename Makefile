@@ -1,6 +1,7 @@
 build: clean
 	mkdir -p _build
 	pip install -r requirements.txt -t _build
+	cp -R .env/lib/python2.7/site-packages/fitparse _build
 	cp -R src/* _build
 
 package: 
@@ -8,11 +9,11 @@ package:
 		--template-file cloudformation-template.yaml \
 		--s3-bucket thijs-test-runalytics \
 		--s3-prefix packages \
-		--output-template-file _build/packaged-cloudformation-template.yaml
+		--output-template-file packaged-cloudformation-template.yaml
 
 deploy: 
 	aws cloudformation deploy \
-		--template-file _build/packaged-cloudformation-template.yaml \
+		--template-file packaged-cloudformation-template.yaml \
 		--stack-name thijs-test-runalytics \
 		--capabilities CAPABILITY_IAM
 
