@@ -20,8 +20,8 @@ Resources:
   GetRuns:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: inventory.handler
-      Runtime: python3.6
+      Handler: api.get_runs
+      Runtime: python2.7
       CodeUri: ./_build/
       Policies: AmazonDynamoDBReadOnlyAccess
       Environment:
@@ -37,8 +37,8 @@ Resources:
   GetRunData:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: inventory.handler
-      Runtime: python3.6
+      Handler: api.get_run_data
+      Runtime: python2.7
       CodeUri: ./_build/
       Policies: AmazonDynamoDBReadOnlyAccess
       Environment:
@@ -56,7 +56,7 @@ Resources:
     Properties: 
       AttributeDefinitions: 
         - AttributeName: run_id
-          AttributeType: N
+          AttributeType: S
       KeySchema: 
         - AttributeName: run_id
           KeyType: HASH
