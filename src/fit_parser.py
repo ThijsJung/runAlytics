@@ -1,3 +1,4 @@
+from __future__ import print_function
 import sys
 import os
 
@@ -5,39 +6,67 @@ import boto3
 
 from fitparse import FitFile, FitParseError
 
+
 class FITParser(object):
     def __init__(self):
         self.coordinates = list()
-        self.heart_rate = list()
-        self.distance = list()
-        self.timestamp = list()
+        self.heart_rates = list()
+        self.distances = list()
+        self.timestamps = list()
+        self.run_id = "No creation date found"
 
     def parse(self, filename):
         try:
-            data = FitFile(filename).parse()
+            fit_file = FitFile(filename)
         except FitParseError, e:
-            print "Error while parsing .FIT file: %s" % e
+            print("Error while parsing .FIT file: %s" % e)
             sys.exit(1)
 
-        for record in data:
-            self.coordinates.append((
-                record.get_value('position_lat'),
-                record.get_value('position_long')))
-            self.heart_rate.append(record.get_value('heart_rate'))
-            self.distance.append(record.get_value('distance'))
-            self.timestamp.append(record.get_value('timestamp'))
+        file_id_data_message = next(fit_file.get_messages(name='file_id'))
+        creation_time = file_id_data_message.get_value('time_created')
+        if creation_time is None:
+            print("No creation time found. Check FIT file {}".format(filename))
+        self.run_id = creation_time.isoformat()
 
+        for record in fit_file.get_messages('record'):
+            self.coordinates.append(list([
+                record.get_value('position_lat'),
+                record.get_value('position_long')
+            ]))
+            self.heart_rates.append(record.get_value('heart_rate'))
+            self.distances.append(str(record.get_value('distance')))
+            self.timestamps.append(record.get_value('timestamp').isoformat())
 
 
 class Uploader(object):
     def __init__(self):
         self.parser = FITParser()
-        self.dynamodb = boto3.resource('dynamodb').Table(os.environ['RUNS_TABLE'])
+        self.table = boto3.resource('dynamodb').Table(os.environ['RUNS_TABLE'])
 
     def upload(self):
-        pass
+        expression = "SET #timestamps = :timestamps, #heart_rates = :heart_rates, #distances = :distances, #coordinates = :coordinates"
+        names = {
+            '#timestamps': 'timestamps',
+            '#heart_rates': 'heart_rates',
+            '#distances': 'distances',
+            '#coordinates': 'coordinates'
+        }
+        values = {
+            ':timestamps': self.parser.timestamps,
+            ':heart_rates': self.parser.heart_rates,
+            ':distances': self.parser.distances,
+            ':coordinates': self.parser.coordinates
+        }
 
-
+        self.table.update_item(
+            Key={'run_id': self.parser.run_id},
+            UpdateExpression=expression,
+            ExpressionAttributeNames=names,
+            ExpressionAttributeValues=values
+        )
 
     def run(self, filename):
         self.parser.parse(filename)
+        print("Adding FIT file '{}' with pk '{}'.".format(
+            filename, self.parser.run_id))
+        self.upload()
