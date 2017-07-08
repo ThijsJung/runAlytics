@@ -1,0 +1,39 @@
+.rows {
+	clear: both;
+}
+
+/*#row-1 {
+	float: left;
+}*/
+
+#row-2 {
+	padding-top: 10px;
+}
+
+#mapid {
+	border: 3px solid blue;
+	float: left;
+	width: 800px; 
+	height: 500px;
+}
+
+#menu {
+	float: left;
+	border: 3px solid red;
+	padding-left: 10px;
+	width: 350px;
+	height: 500px;
+}
+
+#charts {
+	border: 3px solid red;
+	width: 800px;
+	height: 350px;
+}
+
+.graphs {
+	border: 1px lightblue;
+	width: 400px;
+	height: 350px;
+	float: left;
+}
