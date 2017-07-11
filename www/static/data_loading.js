@@ -18,9 +18,7 @@ function loadGraphs(run_id = "2015-12-06T14:37:21"){
 
     callAPI(url, function(response){
 		var responseJSON = JSON.parse(response);
-        // console.log(responseJSON);
         var timestampData = responseJSON["Item"]["timestamps"];
-        // console.log("timestamp data: " + timestampData);
         loadRouteMap(responseJSON["Item"]["coordinates"]);
         loadHeartRateChart(responseJSON["Item"]["heart_rates"], timestampData);
         loadPaceChart();
@@ -56,7 +54,6 @@ function loadRouteMap(routeData){
 function loadRunMenu(){
     var url = 'https://fmp7y4ey29.execute-api.eu-west-1.amazonaws.com/Prod/run';
 	callAPI(url , function(response){
-        // console.log(response)
 		var myRuns = JSON.parse(response);
         var selectRun = document.getElementById("user_run");
         
@@ -106,7 +103,6 @@ function loadPaceChart(){
 }
 
 function loadHeartRateChart(heartRateData, timestampData){
-    // console.log("time stamp data: " + timestampData);
     var data = new google.visualization.DataTable(heartRateData);
     data.addColumn('string', 'X');
     data.addColumn('number', 'Heart rate');
