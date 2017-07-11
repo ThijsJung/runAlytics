@@ -1,40 +1,17 @@
-.rows {
-	clear: both;
-}
-
-/*#row-1 {
-	float: left;
-}*/
-
-#row-2 {
-	padding-top: 10px;
-}
-
 #map {
-	border: 3px solid blue;
-	float: left;
-	/*width: 300px; */
 	height: 400px;
 	width: 70%;
 }
 
 #menu {
-	/*float: left;*/
-	border: 3px solid red;
+	float: left;
 	padding-left: 10px;
-	width: 350px;
+	width: 30%;
 	height: 400px;
 }
 
-#charts {
-	border: 3px solid red;
-	width: 800px;
-	height: 350px;
-}
 
 .graphs {
-	border: 1px lightblue;
 	width: 400px;
 	height: 350px;
-	float: left;
 }
