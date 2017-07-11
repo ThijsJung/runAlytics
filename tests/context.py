@@ -7,4 +7,4 @@ os.environ.update(**{
     'RUNS_TABLE': 'dummy-table'
 })
 
-import mapper
+from fit_parser import FITParser, Uploader
