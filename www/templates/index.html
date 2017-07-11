@@ -1,54 +1,42 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        
-        <title>Runalytics!</title>
 
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        
-        <!-- <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" /> -->
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/leaflet@1.0.2/dist/leaflet.css"/>
-        <link rel="stylesheet" type="text/css" href="static/style.css">
+<head>
 
-        <script type="text/javascript" src="https://unpkg.com/leaflet@1.0.2/dist/leaflet.js"></script>
-        <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    </head>
-    <body>
-        <div class="rows" id="row-1">
-            <div id="mapid"></div>
-            <div id="menu">
-                <div>
-                    <h1>Hi user!</h1>
-                    <p>Please select your run</p>
-                </div>
-                <form id="select_run">
-                    <select id="user_run" onChange=loadRouteData(this.value),loadHeartRateChart(this.value)>
+    <title>Runalytics!</title>
+
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="static/style.css?version=1.0.0">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBj_8Oxk5gWdQa3HNTg3KXkW3CWyVbcUJg&libraries=drawing"></script>
+</head>
+
+<body>
+    <div class="rows" id="row-1">
+        <div id="map"></div>
+        <div id="menu">
+            <div>
+                <h1>Hi user!</h1>
+                <p>Please select your run</p>
+            </div>
+            <form id="select_run">
+                <select id="user_run" onChange=loadGraphs(this.value)>
                     </select>
-                </form>
-                <div>
-                    <p>Upload a new run</p>
-                    <p>Delete this run</p>
-                </div>
+            </form>
+            <div>
+                <p>Upload a new run</p>
+                <p>Delete this run</p>
             </div>
         </div>
-        <div class="rows" id="row-2">
-            <div id="charts">
-                <div class="graphs", id="pace_chart"></div>
-                <div class="graphs", id="heart_rate_chart"></div>
-            </div>
+    </div>
+    <div class="rows" id="row-2">
+        <div id="charts">
+            <div class="graphs" , id="pace_chart"></div>
+            <div class="graphs" , id="heart_rate_chart"></div>
         </div>
-            <!--<script>
-                var mymap = L.map('mapid').setView([52.3799186, 4.8894860], 13);
-                L.tileLayer('https://api.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpandmbXliNDBjZWd2M2x6bDk3c2ZtOTkifQ._QA7i5Mpkd_m30IGElHziw',
-                {
-                    maxZoom: 18,
-                    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, ' +
-                                '<a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-                                'Imagery © <a href="http://mapbox.com">Mapbox</a>',
-                    id: 'mapbox.streets'
-                }).addTo(mymap);
-            </script>-->
-    </body>
-    <script type="text/javascript" src="static/data_loading.js"></script>
+    </div>
+</body>
+<script type="text/javascript" src="static/data_loading.js?version=2.0.4"></script>
 </html>

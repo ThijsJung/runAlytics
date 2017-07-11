@@ -12,97 +12,128 @@ function callAPI(url, cFunction) {
 	xhttp.send();
 }
 
-// Call API 
-function loadRouteData(run_id = 1){
-	// console.log("Run ID: " + run_id);
-	var url = 'runalytics/api/v1.0/runs/' + run_id + '/coordinates';
-	callAPI(url, function(response){
-		var myRouteData = JSON.parse(response);
+function loadGraphs(run_id = "2015-12-06T14:37:21"){
+    console.log("Run ID: " + run_id);
+    var url = 'https://fmp7y4ey29.execute-api.eu-west-1.amazonaws.com/Prod/run/' + run_id;
 
-		var polygon = L.polygon(myRouteData, {color : 'red'}).addTo(mymap);
-		mymap.fitBounds(polygon.getBounds());
-		// .bindPopup("Look what you ran!");
-	})
-}
-
-function loadRunMenu(){
-    // var url = 'runalytics/api/v1.0/runs';
-    // var url = 'https://fmp7y4ey29.execute-api.eu-west-1.amazonaws.com/Prod/run';
-	// callAPI(url , function(response){
-    //     console.log(response)
-		// var myRuns = JSON.parse(response);
-    var myRuns = ["2015-12-13T15:06:22", "2015-12-24T10:59:57", "2015-12-06T14:37:21"];
-    var selectRun = document.getElementById("user_run");
-    
-    for (var i = 0; i < myRuns.length; i++) {
-        var runId = myRuns[i].id;
-        var runName = myRuns[i].name;
-        if (runName === null){
-            runName = "Unnamed run " + runId;
-        }
-        var el = document.createElement("option");
-        el.textContent = runName;
-        el.value = runId;
-        selectRun.appendChild(el);
-    }
-	// })
-}
-
-function loadPaceChart(runId){
-    runId = 1;
-    var url = '/runalytics/api/v1.0/runs/' + runId + '/pace';
     callAPI(url, function(response){
-        var paceData = JSON.parse(response);
-        var data = new google.visualization.DataTable(paceData);
-        data.addColumn('string', 'X');
-        data.addColumn('number', 'Pace');
-
-        data.addRows(paceData);
-
-        var options = {
-            'title' : 'Pace (min/km)',
-            hAxis: {
-              title: 'Distance (km)',
-              type: 'string'
-            },
-            vAxis: {
-              title: 'Pace (min/km)'
-            }
-        };
-
-        var chart = new google.visualization.ColumnChart(document.getElementById('pace_chart'));
-
-        chart.draw(data, options);
+		var responseJSON = JSON.parse(response);
+        // console.log(responseJSON);
+        var timestampData = responseJSON["Item"]["timestamps"];
+        // console.log("timestamp data: " + timestampData);
+        loadRouteMap(responseJSON["Item"]["coordinates"]);
+        loadHeartRateChart(responseJSON["Item"]["heart_rates"], timestampData);
+        loadPaceChart();
     });
 }
 
-function loadHeartRateChart(runId){
-    runId = 1;
-    var url = '/runalytics/api/v1.0/runs/' + runId + '/heartrate';
-    // console.log(url);
-    callAPI(url, function(response){
-        var heartRateData = JSON.parse(response);
-        // console.log(heartRateData);
-        var data = new google.visualization.DataTable();
-        data.addColumn('number', 'X');
-        data.addColumn('number', 'Heart rate');
+function loadRouteMap(routeData){
+    var runCoordinates = [];
+    for (var i = 0; i < routeData.length; i++) {
+        runCoordinates.push({
+            lat: routeData[i][0] * (180 / Math.pow(2, 31)),
+            lng: routeData[i][1] * (180 / Math.pow(2, 31))
+        })
+    }
+    
+    var start_point = runCoordinates[0];
+    var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 13,
+        center: start_point
+    });
 
-        data.addRows(heartRateData);
-        var options = {
-            'title' : 'Heart rate (bpm)',
-            hAxis: {
-              title: 'Time (seconds)'
-            },
-            vAxis: {
-              title: 'Heart rate (bpm)'
+    var runPath = new google.maps.Polyline({
+        path: runCoordinates,
+        geodesic: true,
+        strokeColor: '#FF0000',
+        strokeOpacity: 1.0,
+        strokeWeight: 2
+    });
+
+    runPath.setMap(map);
+}
+
+function loadRunMenu(){
+    var url = 'https://fmp7y4ey29.execute-api.eu-west-1.amazonaws.com/Prod/run';
+	callAPI(url , function(response){
+        // console.log(response)
+		var myRuns = JSON.parse(response);
+        var selectRun = document.getElementById("user_run");
+        
+        for (var i = 0; i < myRuns.length; i++) {
+            var runId = i;
+            var runName = myRuns[i];
+            if (runName === null){
+                runName = "Unnamed run " + runId;
             }
-        };
+            console.log("Run name: " + runName);
+            var el = document.createElement("option");
+            el.textContent = runName;
+            el.value = runName;
+            selectRun.appendChild(el);
+        }
+	})
+}
 
-        var chart = new google.visualization.LineChart(document.getElementById('heart_rate_chart'));
-        chart.draw(data, options);
-    })
+function loadPaceChart(){
+    var data = new google.visualization.DataTable(paceData);
+    data.addColumn('string', 'X');
+    data.addColumn('number', 'Pace');
+
+    var paceData = [
+        ['1', 6.20],
+        ['2', 6.03],
+        ['3', 5.55],
+        ['4', 5.40],
+        ['5', 6.13],
+    ];
+    data.addRows(paceData);
+
+    var options = {
+        'title' : 'Pace (min/km)',
+        hAxis: {
+            title: 'Distance (km)',
+            type: 'string'
+        },
+        vAxis: {
+            title: 'Pace (min/km)'
+        }
+    };
+
+    var chart = new google.visualization.ColumnChart(document.getElementById('pace_chart'));
+
+    chart.draw(data, options);
+}
+
+function loadHeartRateChart(heartRateData, timestampData){
+    // console.log("time stamp data: " + timestampData);
+    var data = new google.visualization.DataTable(heartRateData);
+    data.addColumn('string', 'X');
+    data.addColumn('number', 'Heart rate');
+    var timeHeartrateData = [];
+    for (var i = 0; i < timestampData.length; i++) {
+        timeHeartrateData.push(
+            [timestampData[i], heartRateData[i]]
+        );
+    }
+
+    data.addRows(timeHeartrateData);
+    var options = {
+        'title' : 'Heart rate (bpm)',
+        hAxis: {
+            title: 'Time (seconds)'
+        },
+        vAxis: {
+            title: 'Heart rate (bpm)'
+        }
+    };
+
+    var chart = new google.visualization.LineChart(document.getElementById('heart_rate_chart'));
+    chart.draw(data, options);
 }
 
 loadRunMenu();
-// google.charts.setOnLoadCallback(loadPaceChart);
-// google.charts.setOnLoadCallback(loadHeartRateChart);
+loadGraphs();
+
+google.charts.setOnLoadCallback(loadPaceChart);
+google.charts.setOnLoadCallback(loadHeartRateChart);

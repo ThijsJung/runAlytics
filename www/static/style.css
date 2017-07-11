@@ -10,11 +10,12 @@
 	padding-top: 10px;
 }
 
-#mapid {
+#map {
 	border: 3px solid blue;
 	float: left;
-	width: 800px; 
-	height: 500px;
+	/*width: 300px; */
+	height: 400px;
+	width: 70%;
 }
 
 #menu {
@@ -22,7 +23,7 @@
 	border: 3px solid red;
 	padding-left: 10px;
 	width: 350px;
-	height: 500px;
+	height: 400px;
 }
 
 #charts {
