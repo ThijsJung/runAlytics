@@ -25,3 +25,17 @@ test:
 
 testvv:
 	py.test tests --cov=src --cov-report term-missing --fulltrace -vv
+
+push-www:
+	aws s3 cp www/templates/index.html s3://thijs-test-runalytics/
+	aws s3 cp www/static/style.css s3://thijs-test-runalytics/static/
+	aws s3 cp www/static/data_loading.js s3://thijs-test-runalytics/static/
+
+push-html:
+	aws s3 cp www/templates/index.html s3://thijs-test-runalytics/
+
+push-css:
+	aws s3 cp www/static/style.css s3://thijs-test-runalytics/static/
+
+push-js:
+	aws s3 cp www/static/data_loading.js s3://thijs-test-runalytics/static/
