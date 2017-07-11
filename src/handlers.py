@@ -1,13 +1,13 @@
 import os
 import boto3
 
-from fit_parser import Uploader
+from fit_parser import Uploader, FITParser
 
 s3 = boto3.client('s3')
 
 
 def handler(event, context):
-    uploader = Uploader()
+    uploader = Uploader(FITParser())
     if 'Records' in event:      # event is triggered by S3
         for record in event['Records']:
             bucket = record['s3']['bucket']['name']
