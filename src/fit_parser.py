@@ -1,6 +1,7 @@
 from __future__ import print_function
 import sys
 import os
+import decimal
 
 import boto3
 
@@ -13,7 +14,17 @@ class FITParser(object):
         self.heart_rates = list()
         self.distances = list()
         self.timestamps = list()
-        self.run_id = "No creation date found"
+        self.run_id = None
+
+    def get_run_id(self, fit_file):
+        file_id_data_message = next(fit_file.get_messages(name='file_id'))
+        creation_time = file_id_data_message.get_value('time_created')
+        if creation_time is not None:
+            return creation_time.isoformat()
+
+        # Who should know the filename? Not this method... And, raise exception?
+        # print("No creation time found. Check FIT file {}".format(filename))
+        return "No creation date found"
 
     def parse(self, filename):
         try:
@@ -22,11 +33,7 @@ class FITParser(object):
             print("Error while parsing .FIT file: %s" % e)
             sys.exit(1)
 
-        file_id_data_message = next(fit_file.get_messages(name='file_id'))
-        creation_time = file_id_data_message.get_value('time_created')
-        if creation_time is None:
-            print("No creation time found. Check FIT file {}".format(filename))
-        self.run_id = creation_time.isoformat()
+        self.run_id = self.get_run_id(fit_file)
 
         for record in fit_file.get_messages('record'):
             self.coordinates.append(list([
@@ -34,13 +41,14 @@ class FITParser(object):
                 record.get_value('position_long')
             ]))
             self.heart_rates.append(record.get_value('heart_rate'))
-            self.distances.append(str(record.get_value('distance')))
+            self.distances.append(decimal.Decimal(
+                str(record.get_value('distance'))))
             self.timestamps.append(record.get_value('timestamp').isoformat())
 
 
 class Uploader(object):
-    def __init__(self):
-        self.parser = FITParser()
+    def __init__(self, parser):
+        self.parser = parser
         self.table = boto3.resource('dynamodb').Table(os.environ['RUNS_TABLE'])
 
     def upload(self):
@@ -67,6 +75,5 @@ class Uploader(object):
 
     def run(self, filename):
         self.parser.parse(filename)
-        print("Adding FIT file '{}' with pk '{}'.".format(
-            filename, self.parser.run_id))
+        print("Adding FIT file with run_id '{}'.".format(self.parser.run_id))
         self.upload()
