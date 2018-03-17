@@ -1,27 +1,22 @@
-from unittest import TestCase
-from mock import Mock, patch
+from fit_parser import parse_fit_file
 
-from context import FITParser, Uploader
+import pytest
+
+from runs.models import Run
 
 FILENAME = 'data/FIT/5C6F3721.FIT'
 
-class TestParseFITFile(TestCase):
-    def setUp(self):
-        self.filename = 'data/FIT/5C6F3721.FIT'
-        self.parser = FITParser()
-
-    def test_parse_get_run_id(self):
-        self.parser.parse(self.filename)
-        assert self.parser.run_id == "2015-12-06T14:37:21"
+def test_parse_fit_file_wrong_input_type():
+    with pytest.raises(FileNotFoundError):
+        fit_file = parse_fit_file('not a fit file')
     
-    def test_get_run_id_none_found(self):
-        self.parser.parse(self.filename)
-        assert self.parser.run_id == "No creation date found"
+def test_parse_fit_file():
+    fit_file = parse_fit_file(FILENAME)
 
-# class TestUploader(TestCase):
+    assert type(fit_file) == Run
 
-    # @patch('Uploader.table')
-    # def test_upload(self, mock_table):
-    #     uploader = Uploader(FITParser())
-    #     uploader.run(FILENAME)
-    #     assert mock_table.update_item.call_count == 0
+def test_get_run_id():
+    pass
+    
+def test_get_creation_time():
+    pass
