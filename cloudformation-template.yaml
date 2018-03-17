@@ -1,65 +1,17 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
-Description: Runalytics
+Description: Runalytics; a Serverless application that displays information from my running (GPS) watch
+
 Resources:
-  FitFileParser:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: Parser for fit files that writes necessary information to dynamodb
-      Handler: handlers.handler
-      Runtime: python2.7
-      Timeout: 300
-      MemorySize: 1024
-      CodeUri: ./_build/
-      Policies: 
-        - AmazonDynamoDBFullAccess
-      Environment:
-        Variables:
-          RUNS_TABLE: !Ref RunsTable
+  RunalyticsBucket:
+    Type: AWS::S3::Bucket
 
-  GetRuns:
-    Type: AWS::Serverless::Function
+  RunalyticsTable:
+    Type: AWS::Table::Dynamodb
+    Description: Holds all the metadata for the runs
     Properties:
-      Handler: api.get_runs
-      Runtime: python2.7
-      CodeUri: ./_build/
-      Policies: AmazonDynamoDBReadOnlyAccess
-      Environment:
-        Variables:
-          RUNS_TABLE: !Ref RunsTable
-      Events:
-        PartnerApi:
-          Type: Api
-          Properties:
-            Path: /run
-            Method: GET
-
-  GetRunData:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: api.get_run_data
-      Runtime: python2.7
-      CodeUri: ./_build/
-      Policies: AmazonDynamoDBReadOnlyAccess
-      Environment:
-        Variables:
-          RUNS_TABLE: !Ref RunsTable
-      Events:
-        PartnerApi:
-          Type: Api
-          Properties:
-            Path: /run/{run_id}
-            Method: GET
-
-  RunsTable:
-    Type: AWS::DynamoDB::Table
-    Properties: 
-      AttributeDefinitions: 
-        - AttributeName: run_id
-          AttributeType: S
-      KeySchema: 
-        - AttributeName: run_id
-          KeyType: HASH
-      ProvisionedThroughput: 
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+      AttributeDefinitions:
+      - AttributeDefinition
+      KeySchema:
+      - KeySchema
+      ProvisionedThroughput:
+      - ProvisionedThroughput
