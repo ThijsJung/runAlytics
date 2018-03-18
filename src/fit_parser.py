@@ -1,85 +1,71 @@
-from __future__ import print_function
+from collections import defaultdict
 import sys
-import os
-import decimal
-
-import boto3
 
 from fitparse import FitFile, FitParseError
 
-def parse_fit_file(filename):
+from runs.models import Run
+
+
+def open_file(filename):
+    """
+    Tries to open a given file and return a FitFile object.
+
+    Return:
+        FitFile object or None (in case of error)
+    """
     try:
         fit_file = FitFile(filename)
     except FitParseError as e:
         print("Error while parsing .FIT file: %s" % e)
-        raise e
+        return
+
     return fit_file
 
-# class FITParser(object):
-#     def __init__(self):
-#         self.coordinates = list()
-#         self.heart_rates = list()
-#         self.distances = list()
-#         self.timestamps = list()
-#         self.run_id = None
 
-#     def _
-    
-#     def get_run_id(self, fit_file):
-#         file_id_data_message = next(fit_file.get_messages(name='file_id'))
-#         creation_time = file_id_data_message.get_value('time_created')
-#         if creation_time is not None:
-#             return creation_time.isoformat()
+def get_creation_timestamp(fit_file):
+    """
+    Extracts the time_created field from a fit file
 
-#         # Who should know the filename? Not this method... And, raise exception?
-#         # print("No creation time found. Check FIT file {}".format(filename))
-#         return "No creation date found"
-    
+    Returns:
+        ISO formatted datetime string or None (if field not present)
+    """
+    fit_file_metadata = next(fit_file.get_messages(name='file_id'))
+    metadata_timestamp = fit_file_metadata.get_value('time_created')
 
-#     def parse(self, filename):
-        
-
-#         self.run_id = self.get_run_id(fit_file)
-
-#         for record in fit_file.get_messages('record'):
-#             self.coordinates.append(list([
-#                 record.get_value('position_lat'),
-#                 record.get_value('position_long')
-#             ]))
-#             self.heart_rates.append(record.get_value('heart_rate'))
-#             self.distances.append(decimal.Decimal(
-#                 str(record.get_value('distance'))))
-#             self.timestamps.append(record.get_value('timestamp').isoformat())
+    return metadata_timestamp.isoformat()
 
 
-# class Uploader(object):
-#     def __init__(self, parser):
-#         self.parser = parser
-#         self.table = boto3.resource('dynamodb').Table(os.environ['RUNS_TABLE'])
+def semicirle_to_coordinates(semicircle):
+    return semicircle * (180/2**31)
 
-#     def upload(self):
-#         expression = "SET #timestamps = :timestamps, #heart_rates = :heart_rates, #distances = :distances, #coordinates = :coordinates"
-#         names = {
-#             '#timestamps': 'timestamps',
-#             '#heart_rates': 'heart_rates',
-#             '#distances': 'distances',
-#             '#coordinates': 'coordinates'
-#         }
-#         values = {
-#             ':timestamps': self.parser.timestamps,
-#             ':heart_rates': self.parser.heart_rates,
-#             ':distances': self.parser.distances,
-#             ':coordinates': self.parser.coordinates
-#         }
 
-#         self.table.update_item(
-#             Key={'run_id': self.parser.run_id},
-#             UpdateExpression=expression,
-#             ExpressionAttributeNames=names,
-#             ExpressionAttributeValues=values
-#         )
+def extract_data(fit_file):
+    data = defaultdict(list)
+    for record in fit_file.get_messages('record'):
+        lat = record.get_value('position_lat')
+        long = record.get_value('position_long')
+        data['coordinates'].append(
+            (semicirle_to_coordinates(lat),
+             semicirle_to_coordinates(long))
+        )
+        data['heart_rates'].append(record.get_value('heart_rate'))
+        data['distances'].append(record.get_value('distance'))
+        timestamp = record.get_value('timestamp')
+        data['timestamps'].append(timestamp.isoformat())
 
-#     def run(self, filename):
-#         self.parser.parse(filename)
-#         print("Adding FIT file with run_id '{}'.".format(self.parser.run_id))
-#         self.upload()
+    return data
+
+
+def parse_fit_file(filename):
+    fit_file = open_file(filename)
+    if fit_file is None:
+        return
+
+    created_at = get_creation_timestamp(fit_file)
+    data = extract_data(fit_file)
+
+    return Run(
+        id=filename,
+        created_at=created_at,
+        data=data
+    )
