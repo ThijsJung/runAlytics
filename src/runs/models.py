@@ -1,16 +1,16 @@
 from datetime import datetime
-from uuid import uuid4
+from typing import NamedTuple
 
-from typing import NamedTuple, List
 
 class Run(NamedTuple):
     id: str
-    timestamps: list
-    coordinates: list
-    distances: list
-    heart_rates: list
-
+    created_at: datetime = None
+    data: dict = {
+        "distances": [],
+        "heart_rates": [],
+        "coordinates": [],
+        "timestamps": []
+    }
 
     def to_dict(self):
         return self._asdict()
-
