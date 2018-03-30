@@ -42,14 +42,21 @@ def semicirle_to_coordinates(semicircle):
 def extract_data(fit_file):
     data = defaultdict(list)
     for record in fit_file.get_messages('record'):
+        # Extract geocoordinates
         lat = record.get_value('position_lat')
         long = record.get_value('position_long')
         data['coordinates'].append(
             (semicirle_to_coordinates(lat),
              semicirle_to_coordinates(long))
         )
+
+        # Extract heart rates
         data['heart_rates'].append(record.get_value('heart_rate'))
+
+        # Extract distances ran
         data['distances'].append(record.get_value('distance'))
+
+        # Extract timestamps
         timestamp = record.get_value('timestamp')
         data['timestamps'].append(timestamp.isoformat())
 
@@ -64,8 +71,7 @@ def parse_fit_file(filename):
     created_at = get_creation_timestamp(fit_file)
     data = extract_data(fit_file)
 
-    return Run(
-        id=filename,
+    return dict(
         created_at=created_at,
         data=data
     )
