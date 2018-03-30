@@ -21,7 +21,7 @@ clean:
 	find . -name "*.pyc" -exec rm -f {} \;
 
 test:
-	py.test tests # --cov=src --cov-report term-missing
+	PYTHONPATH=./src py.test tests # --cov=src --cov-report term-missing
 
 testvv:
 	py.test tests --cov=src --cov-report term-missing --fulltrace -vv
